@@ -1,10 +1,9 @@
 import java.util.Arrays;
-import java.util.Random;
 
 import mpi.MPI;
 import mpi.Status;
 
-public class ParallelPrim {
+public class ParallelPrimMPI {
 
     public static void main(String[] args) {
         MPI.Init(args);
@@ -14,12 +13,16 @@ public class ParallelPrim {
         int size = MPI.COMM_WORLD.Size();
 
         // Визначення кількості вершин графа
-        int numVertices = 500;
+        int numVertices = 5;
 
         // Генерація випадкових ваг ребер та вершин
-        int[][] graph = generateGraph(numVertices);
+        int[][] graph = {{0, 5, 5, 4, 2},
+                {5, 0, 5, 9, 4},
+                {5, 5, 0, 9, 10},
+                {4, 9, 9, 0, 5},
+                {2, 4, 10, 5, 0}};
 
-//        printGraph(graph);
+        GraphUtil.printGraph(graph);
 
         // Ініціалізація змінних для алгоритму Пріма
         int[] selectedVertices = new int[numVertices];
@@ -47,7 +50,7 @@ public class ParallelPrim {
             int minWeight = Integer.MAX_VALUE;
             int minVertex = -1;
             for (int j = 0; j <= i; j++) {
-//                System.out.println("Searching min vertices among subgraph");
+                System.out.println("Searching min vertices among subgraph");
                 int vertex = selectedVertices[j];
                 for (int k = 0; k < numVertices; k++) {
                     if (!visited[k] && graph[vertex][k] != 0 && graph[vertex][k] < minWeight) {
@@ -60,7 +63,7 @@ public class ParallelPrim {
             // Розсилка мінімальної ваги та вершини всім процесам
             int[] message = new int[]{minWeight, minVertex};
             for (int j = 0; j < size; j++) {
-//                System.out.println("Sending message to " + j);
+                System.out.println("Sending message to " + j);
                 if (j != rank) {
                     MPI.COMM_WORLD.Send(message, 0, 2, MPI.INT, j, 0);
                 }
@@ -68,7 +71,7 @@ public class ParallelPrim {
             // Отримання мінімальної ваги та вершини від інших процесів
             for (int j = 0; j < size; j++) {
                 if (j != rank) {
-//                    System.out.println("getting verticis from other processes");
+                    System.out.println("getting vertices from other processes");
                     Status status = MPI.COMM_WORLD.Probe(j, 0);
                     int[] receivedMessage = new int[2];
                     MPI.COMM_WORLD.Recv(receivedMessage, 0, 2, MPI.INT, j, 0);
@@ -101,27 +104,5 @@ public class ParallelPrim {
         }
 
         MPI.Finalize();
-    }
-
-    private static void printGraph(int[][] graph) {
-        for (int[] line : graph) {
-            for (int j = 0; j < line.length; j++) {
-                System.out.print(line[j] + ", ");
-            }
-            System.out.println();
-        }
-    }
-
-    private static int[][] generateGraph(int numVertices) {
-        int[][] graph = new int[numVertices][numVertices];
-        Random random = new Random();
-        for (int i = 0; i < numVertices; i++) {
-            for (int j = i + 1; j < numVertices; j++) {
-                int weight = random.nextInt(10) + 1;
-                graph[i][j] = weight;
-                graph[j][i] = weight;
-            }
-        }
-        return graph;
     }
 }
