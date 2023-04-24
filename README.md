@@ -10,3 +10,8 @@
 6. Compare efficiency of sequential, threaded and MPI Prim's algorithms (different graphs' sizes, complexity and different amount of processes/threads)
 7. Visualize results
 8. Make conclusion
+
+
+Ref: 
+https://github.com/kryvokhyzha/parallel-and-distributed-computing.git
+https://github.com/parthvshah/parallel-prims.git
